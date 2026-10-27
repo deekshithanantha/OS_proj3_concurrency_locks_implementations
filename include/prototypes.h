@@ -552,6 +552,10 @@ extern	int32	cpuid(void);
 /* in file suspend.c */
 extern	syscall	suspend(pid32);
 
+/* in file testandset.S */ 
+extern uint32 test_and_set(uint32 *, uint32);
+
+
 /* in file ttycontrol.c */
 extern	devcall	ttycontrol(struct dentry *, int32, int32, int32);
 
