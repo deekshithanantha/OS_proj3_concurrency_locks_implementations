@@ -11,7 +11,7 @@ syscall	sl_initlock(
 	  sl_lock_t *l	/* Mutex flag to spinlock	*/
 	)
 {
-	*l = 0;
+	l->flag = 0;
 	return OK;
 }
 
@@ -19,7 +19,7 @@ syscall	sl_lock(
 	  sl_lock_t *l	/* Mutex flag to spinlock	*/
 	)
 {
-	while (test_and_set(&l , 1) == 1)
+	while (test_and_set(&l->flag , 1) == 1)
 	{
 		/* spin here */
 	}
@@ -30,6 +30,6 @@ syscall	sl_unlock(
 	  sl_lock_t *l	/* Mutex flag to spinlock	*/
 	)
 {
-	*l=0;
+	l->flag=0;
 	return OK;
 }
