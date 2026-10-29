@@ -537,6 +537,12 @@ extern	syscall	signaln(sid32, int32);
 extern	syscall	sleepms(int32);
 extern	syscall	sleep(int32);
 
+/* in spinlock.c */
+extern	syscall sl_initlock(sl_lock_t *l); 
+extern	syscall sl_lock(sl_lock_t *l); 
+extern	syscall sl_unlock(sl_lock_t *l); 
+
+
 /* in file start.S */
 extern	int32	inb(int32);
 extern	int32	inw(int32);

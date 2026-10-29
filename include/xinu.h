@@ -6,6 +6,7 @@
 #include <queue.h>
 #include <resched.h>
 #include <mark.h>
+#include <lock.h>
 #include <semaphore.h>
 #include <memory.h>
 #include <bufpool.h>

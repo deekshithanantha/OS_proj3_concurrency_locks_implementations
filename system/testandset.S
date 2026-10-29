@@ -5,7 +5,7 @@
 // }
 
         .text
-        .globl add
+        .globl test_and_set
 
 test_and_set:
         pushl %ebp        // Push EBP on stack
