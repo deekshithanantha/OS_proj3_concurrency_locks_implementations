@@ -8,8 +8,7 @@
  */
 
 static int32	sp_locks_count = 0;
-
-static uint32 sp_init_guard = 0;
+static uint32 	sp_init_guard = 0;
 
 syscall	sl_initlock(
 	  sl_lock_t *l	/* Mutex flag to spinlock	*/
