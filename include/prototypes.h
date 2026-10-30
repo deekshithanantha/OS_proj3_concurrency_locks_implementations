@@ -284,6 +284,12 @@ extern	devcall	lpread(struct dentry *, char *, int32);
 /* in file lpwrite.c */
 extern	devcall	lpwrite(struct dentry *, char *, int32);
 
+/* in file lock.c */
+extern syscall initlock(lock_t *); 
+extern syscall lock(lock_t *); 
+extern syscall unlock(lock_t *); 
+
+
 /* in file mark.c */
 extern	void	markinit(void);
 extern	status	mark(int32 *);
@@ -538,9 +544,9 @@ extern	syscall	sleepms(int32);
 extern	syscall	sleep(int32);
 
 /* in spinlock.c */
-extern	syscall sl_initlock(sl_lock_t *l); 
-extern	syscall sl_lock(sl_lock_t *l); 
-extern	syscall sl_unlock(sl_lock_t *l); 
+extern	syscall sl_initlock(sl_lock_t *); 
+extern	syscall sl_lock(sl_lock_t *); 
+extern	syscall sl_unlock(sl_lock_t *); 
 
 
 /* in file start.S */

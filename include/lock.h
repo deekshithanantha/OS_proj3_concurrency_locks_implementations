@@ -1,9 +1,16 @@
 /*lock.h*/
 
+#define NSPINLOCKS 20	/* maximum number of spinlocks that can be used */
+
+extern qid16 parking_q;
 
 /* Synchronization types */
-typedef struct lock {
+typedef struct sp_lock {
     uint32 flag;
 } sl_lock_t;
 
-#define NSPINLOCKS 20	/* maximum number of spinlocks that can be used */
+typedef struct lock {
+    uint32 flag;
+    uint32 guard;
+
+} lock_t;
