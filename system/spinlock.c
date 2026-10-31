@@ -10,9 +10,7 @@
 static int32	sp_locks_count = 0;
 static uint32 	sp_init_guard = 0;
 
-syscall	sl_initlock(
-	  sl_lock_t *l	/* Mutex flag to spinlock	*/
-	)
+syscall	sl_initlock(sl_lock_t *l) /* Mutex flag to spinlock	*/
 {
 
 	while (test_and_set(&sp_init_guard,1) == 1)
@@ -20,28 +18,23 @@ syscall	sl_initlock(
 	  /* this is done to avoid two processes from updating the count simultaneously */
 	}
 	
-	if (sp_locks_count>=NSPINLOCKS)
-	{
-		sp_init_guard = 0;
-		return SYSERR;
-	}
+		if (sp_locks_count>=NSPINLOCKS)
+		{
+			sp_init_guard = 0;
+			return SYSERR;
+		}
 
-	l->flag = 0;
-	l->owner = -1;
-	sp_locks_count++; 
+		l->flag = 0;
+		l->owner = -1;
+		sp_locks_count++; 
+
 	sp_init_guard = 0;
 
 	return OK;
 }
 
-syscall	sl_lock(
-	  sl_lock_t *l	/* Mutex flag to spinlock	*/
-	)
+syscall	sl_lock( sl_lock_t *l)	/* Mutex flag to spinlock	*/
 {
-
-
-
-
 	while (test_and_set(&l->flag , 1) == 1)
 	{
 		/* spin here */
@@ -51,9 +44,7 @@ syscall	sl_lock(
 	return OK;
 }
 
-syscall	sl_unlock(
-	  sl_lock_t *l	/* Mutex flag to spinlock	*/
-	)
+syscall	sl_unlock( sl_lock_t *l )	/* Mutex flag to spinlock	*/
 {
 	if(l->owner != currpid) return SYSERR; 
 
