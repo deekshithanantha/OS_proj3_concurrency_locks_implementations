@@ -12,12 +12,11 @@ static uint32 	sp_init_guard = 0;
 
 syscall	sl_initlock(sl_lock_t *l) /* Mutex flag to spinlock	*/
 {
-
 	while (test_and_set(&sp_init_guard,1) == 1)
 	{
 	  /* this is done to avoid two processes from updating the count simultaneously */
 	}
-	
+		
 		if (sp_locks_count>=NSPINLOCKS)
 		{
 			sp_init_guard = 0;

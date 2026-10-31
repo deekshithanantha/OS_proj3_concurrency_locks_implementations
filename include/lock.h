@@ -10,11 +10,20 @@ extern qid16 parking_q;
 typedef struct sp_lock {
     uint32 flag;
     pid32 owner;
+
 } sl_lock_t;
+
+
 
 typedef struct lock {
     uint32 flag;
     uint32 guard;
     pid32 owner;
+
+    pid32 waiting_pids_list[NPROC];
+    uint32 count;
+    uint32 head;
+    uint32 tail;
+    
 
 } lock_t;

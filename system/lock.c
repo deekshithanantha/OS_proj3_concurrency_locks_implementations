@@ -6,14 +6,45 @@
  *  spinlock  -   spinlock based on  test_and_set function
  *------------------------------------------------------------------------
  */
-
+static int32	locks_count = 0;
+static uint32 	locks_init_guard = 0;
 
 qid16 parking_q;
 
+
+
+void park(pid32 pid);
+void unpark(pid32 pid);
+void set_park(pid32 pid);
+
+
+
 syscall	initlock( lock_t *l	/* Mutex flag to lock	*/) {
+
+	while (test_and_set(&locks_init_guard,1) == 1)
+	{
+	  /* this is done to avoid two processes from updating the count simultaneously */
+	}
+	
+	if (locks_count>=NLOCKS)
+	{
+		locks_init_guard = 0;
+		return SYSERR;
+	}
+
+
 	l->flag = 0;
 	l->guard = 0;
-	parking_q = newqueue();
+	l->owner = -1; 
+
+	// for the waiting list
+	l->count = 0;
+	l->head = 0; 
+	l->tail = 0; 	
+
+	locks_count++;
+	locks_init_guard = 0;
+	return OK;
 }
 
 syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
@@ -22,13 +53,20 @@ syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
 
 	if(l->flag == 0) {
 		l->flag = 1;
+		l->owner = currpid; 
 		l->guard = 0;
+		
 	}
 	else {
-		enqueue(currpid,parking_q);
-		//set_park();
+		l->waiting_pids_list[l->tail] = currpid;
+		l->tail = (l->tail +1) % NPROC ;
+		l->count++;
+		
+
+		set_park(currpid);
 		l->guard = 0;
-		//park();
+		park(currpid);
+
 	}
 	
 	return OK;
@@ -38,13 +76,60 @@ syscall	unlock(lock_t *l	/* Mutex flag to spinlock	*/ ) {
 
 	while (test_and_set(&l->guard , 1) == 1){ /* Spin here */}
 	
-	if (isempty(parking_q)) {
+	if(l->owner != currpid) 
+	{
+		l->guard = 0;
+		return SYSERR;
+	}
+	
+	 
+	if (l->count == 0) {
 		l->flag = 0;
+		l->owner = -1;
 	}
 	else{
-		//unpark(dequeue(parking_q));
+		pid32 pid = l->waiting_pids_list[l->head];
+		l->head = (l->head +1) % NPROC;
+		l->count--;
+		l->owner = pid;
+
+		l->guard = 0;
+		unpark(pid);
+		return ok;
 	}
-	l->guard = 0;
 	
+	l->guard = 0;
 	return OK;
 }
+
+void set_park(pid32 pid) {
+	intmask	mask;
+	mask = disable();
+
+	proctab[pid].set_park = TRUE;
+	restore(mask);
+}
+
+void park( pid32 pid ) {
+	intmask	mask;
+	mask = disable();	
+
+	if(proctab[pid].set_park == TRUE) {
+		proctab[pid].set_park = FALSE;
+		proctab[pid].prstate = PR_READY;
+	}
+	else {
+		proctab[pid].prstate = PR_SLEEP;
+	}
+	restore(mask);
+}
+
+void unpark(pid32 pid) {
+	intmask	mask;
+	mask = disable();
+
+	proctab[pid].prstate = PR_READY;
+
+	restore(mask);
+}
+
