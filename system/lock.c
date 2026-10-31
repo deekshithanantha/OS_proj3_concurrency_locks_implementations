@@ -20,6 +20,8 @@ void set_park(pid32 pid);
 
 syscall	initlock( lock_t *l	/* Mutex flag to lock	*/) {
 
+	pri16 old_priority = chprio(currpid,MAXPRIO);
+
 	while (test_and_set(&locks_init_guard,1) == 1)
 	{
 	  /* this is done to avoid two processes from updating the count simultaneously */
@@ -28,6 +30,7 @@ syscall	initlock( lock_t *l	/* Mutex flag to lock	*/) {
 	if (locks_count>=NLOCKS)
 	{
 		locks_init_guard = 0;
+		chprio(currpid,old_priority);
 		return SYSERR;
 	}
 
@@ -43,17 +46,25 @@ syscall	initlock( lock_t *l	/* Mutex flag to lock	*/) {
 
 	locks_count++;
 	locks_init_guard = 0;
+
+	chprio(currpid,old_priority);
+
 	return OK;
 }
 
 syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
-	
+
+	pri16 old_priority = chprio(currpid,MAXPRIO);
+
 	while (test_and_set(&l->guard , 1) == 1){/* spin here */}
+
 
 	if(l->flag == 0) {
 		l->flag = 1;
 		l->owner = currpid; 
 		l->guard = 0;
+
+		chprio(currpid,old_priority);
 		
 	}
 	else {
@@ -63,6 +74,8 @@ syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
 
 		set_park(currpid);
 		l->guard = 0;
+
+		chprio(currpid,old_priority);
 		park(currpid);
 
 	}
@@ -72,11 +85,14 @@ syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
 
 syscall	unlock(lock_t *l	/* Mutex flag to spinlock	*/ ) {
 
+	pri16 old_priority = chprio(currpid,MAXPRIO);
+
 	while (test_and_set(&l->guard , 1) == 1){ /* Spin here */}
 	
 	if(l->owner != currpid) 
 	{
 		l->guard = 0;
+		chprio(currpid,old_priority);
 		return SYSERR;
 	}
 	
@@ -92,11 +108,16 @@ syscall	unlock(lock_t *l	/* Mutex flag to spinlock	*/ ) {
 		l->owner = pid;
 
 		l->guard = 0;
+		chprio(currpid,old_priority);
+
 		unpark(pid);
+		
+		
 		return OK;
 	}
 	
 	l->guard = 0;
+	chprio(currpid,old_priority);
 	return OK;
 }
 
@@ -143,3 +164,7 @@ void unpark(pid32 pid) {
 	restore(mask);
 }
 
+
+// Low priority Tid takes lock
+// XINU will alwasy schedule High prio TID
+// So low priority thread will never release a lock
