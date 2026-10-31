@@ -9,7 +9,6 @@
 static int32	locks_count = 0;
 static uint32 	locks_init_guard = 0;
 
-qid16 parking_q;
 
 
 
@@ -61,7 +60,6 @@ syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
 		l->waiting_pids_list[l->tail] = currpid;
 		l->tail = (l->tail +1) % NPROC ;
 		l->count++;
-		
 
 		set_park(currpid);
 		l->guard = 0;
@@ -95,7 +93,7 @@ syscall	unlock(lock_t *l	/* Mutex flag to spinlock	*/ ) {
 
 		l->guard = 0;
 		unpark(pid);
-		return ok;
+		return OK;
 	}
 	
 	l->guard = 0;
@@ -103,33 +101,45 @@ syscall	unlock(lock_t *l	/* Mutex flag to spinlock	*/ ) {
 }
 
 void set_park(pid32 pid) {
-	intmask	mask;
-	mask = disable();
-
-	proctab[pid].set_park = TRUE;
+	intmask	mask = disable();
+		proctab[pid].set_park = TRUE;
 	restore(mask);
 }
 
 void park( pid32 pid ) {
-	intmask	mask;
-	mask = disable();	
+	intmask	mask = disable();	
 
+	if(isbadpid(pid) || pid != currpid)
+	{
+		restore(mask);
+		return;
+	}
+	
 	if(proctab[pid].set_park == TRUE) {
-		proctab[pid].set_park = FALSE;
-		proctab[pid].prstate = PR_READY;
+		proctab[pid].prstate = PR_SUSP;
+		resched();
 	}
-	else {
-		proctab[pid].prstate = PR_SLEEP;
-	}
+	
+	 
 	restore(mask);
 }
 
 void unpark(pid32 pid) {
-	intmask	mask;
-	mask = disable();
+	intmask	mask = disable();
+	
+	if(isbadpid(pid))
+	{
+		restore(mask);
+		return;
+	}
+	if(proctab[pid].set_park == TRUE) {
+		proctab[pid].set_park = FALSE;
 
-	proctab[pid].prstate = PR_READY;
+        if (proctab[pid].prstate == PR_SUSP) {
+            ready(pid);
+		}
 
+	}
 	restore(mask);
 }
 
