@@ -21,9 +21,18 @@ syscall	send(
 	}
 
 	prptr = &proctab[pid];
-	if (prptr->prhasmsg) {
-		restore(mask);
-		return SYSERR;
+	while (prptr->prhasmsg) {
+		if (pid != proctab[currpid].prparent) {
+			restore(mask);
+			return SYSERR;
+		}
+		resched();
+
+		if (isbadpid(pid)) {
+			restore(mask);
+			return SYSERR;
+		}
+		prptr = &proctab[pid];
 	}
 	prptr->prmsg = msg;		/* Deliver message		*/
 	prptr->prhasmsg = TRUE;		/* Indicate message is waiting	*/
