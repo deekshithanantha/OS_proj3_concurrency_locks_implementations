@@ -130,17 +130,17 @@ void set_park(pid32 pid) {
 void park( pid32 pid ) {
 	intmask	mask = disable();	
 
-	if(isbadpid(pid) || pid != currpid)
-	{
-		restore(mask);
-		return;
-	}
-	
-	if(proctab[pid].set_park == TRUE) {
-		proctab[pid].prstate = PR_SUSP;
-		resched();
-	}
-	
+		if(isbadpid(pid) || pid != currpid)
+		{
+			restore(mask);
+			return;
+		}
+		
+		if(proctab[pid].set_park == TRUE) {
+			proctab[pid].prstate = PR_SUSP;
+			resched();
+		}
+		
 	 
 	restore(mask);
 }
@@ -148,19 +148,19 @@ void park( pid32 pid ) {
 void unpark(pid32 pid) {
 	intmask	mask = disable();
 	
-	if(isbadpid(pid))
-	{
-		restore(mask);
-		return;
-	}
-	if(proctab[pid].set_park == TRUE) {
-		proctab[pid].set_park = FALSE;
-
-        if (proctab[pid].prstate == PR_SUSP) {
-            ready(pid);
+		if(isbadpid(pid))
+		{
+			restore(mask);
+			return;
 		}
+		if(proctab[pid].set_park == TRUE) {
+			proctab[pid].set_park = FALSE;
 
-	}
+			if (proctab[pid].prstate == PR_SUSP) {
+				ready(pid);
+			}
+
+		}
 	restore(mask);
 }
 
