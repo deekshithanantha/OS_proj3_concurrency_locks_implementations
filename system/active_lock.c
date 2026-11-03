@@ -132,11 +132,28 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 
 		if(DL_FOUND) {
 
-			int i;
-			printf("deadlock_detected=P%d",&currpid);
-			for(i = 0;i<trace_count;i++) {
+
+			int i, j;
+			pid32 temp;
+
+			for(i = 1; i<trace_count;i++) {
+				temp = pid_trace_list[i];
+				j = i;
+
+				while (j>0 && pid_trace_list[j-1] >temp) 
+				{
+					pid_trace_list[j] = pid_trace_list[j-1];
+					j--;
+				}
+				pid_trace_list[j] = temp;
+				
+			}
+
+
+			printf("deadlock_detected=P%d",pid_trace_list[0]);
+			for(i = 1;i<trace_count;i++) {
 				pid32 temp = pid_trace_list[i];
-				printf("-P%d",&temp);
+				printf("-P%d",temp);
 			}
 			printf("\n");
 
