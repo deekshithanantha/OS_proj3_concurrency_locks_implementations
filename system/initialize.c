@@ -194,6 +194,8 @@ static	void	sysinit()
 	prptr->prstkptr = 0;
 	prptr->set_park = FALSE;
 	currpid = NULLPROC;
+	prptr->wt_mutex = NULL;
+
 	
 	/* Initialize semaphores */
 

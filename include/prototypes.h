@@ -17,6 +17,12 @@ extern	void	arp_hton(struct arppacket *);
 /* in file ascdate.c */
 extern	status	ascdate(uint32, char *);
 
+/* in file active_lock.c */
+extern syscall al_initlock(al_lock_t *l); 
+extern syscall al_lock(al_lock_t *l); 
+extern syscall al_unlock(al_lock_t *l); 
+extern bool8   al_trylock(al_lock_t *l); 
+
 /* in file bufinit.c */
 extern	status	bufinit(void);
 
@@ -288,6 +294,11 @@ extern	devcall	lpwrite(struct dentry *, char *, int32);
 extern syscall initlock(lock_t *); 
 extern syscall lock(lock_t *); 
 extern syscall unlock(lock_t *); 
+
+extern void park(pid32 pid);
+extern void unpark(pid32 pid);
+extern void set_park(pid32 pid);
+
 
 
 /* in file mark.c */

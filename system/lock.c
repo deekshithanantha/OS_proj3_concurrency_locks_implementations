@@ -12,12 +12,6 @@ static uint32 	locks_init_guard = 0;
 
 
 
-void park(pid32 pid);
-void unpark(pid32 pid);
-void set_park(pid32 pid);
-
-
-
 syscall	initlock( lock_t *l	/* Mutex flag to lock	*/) {
 
 	pri16 old_priority = chprio(currpid,MAXPRIO);

@@ -51,6 +51,7 @@ pid32	create(
 	prptr->prhasmsg = FALSE;
 	prptr->set_park = FALSE;
 	prptr->runtime = 0;
+	prptr->wt_mutex = NULL;
 
 	/* Set up stdin, stdout, and stderr descriptors for the shell	*/
 	prptr->prdesc[0] = CONSOLE;

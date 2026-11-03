@@ -38,6 +38,8 @@
 
 #define NDESC		5	/* must be odd to make procent 4N bytes	*/
 
+struct active_lock;
+
 /* Definition of the process table (multiple of 32 bits) */
 
 struct procent {		/* Entry in the process table		*/
@@ -54,6 +56,7 @@ struct procent {		/* Entry in the process table		*/
 	int16	prdesc[NDESC];	/* Device descriptors for process	*/
 	bool8 	set_park;   /* If made true will unpark when called park*/
 	uint32	runtime;	/* CPU running time in milliseconds	*/
+	struct active_lock *wt_mutex;
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/
