@@ -90,15 +90,19 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 		l->tail = (l->tail +1) % NPROC ;
 		l->count++;
 
-        //deadlock detection code
+		// deadlock detection code
 		proctab[currpid].wt_mutex = l;
-		
+
 		pid32 pid_trace = l->owner;
 		bool8 DL_FOUND = FALSE;
 
 		bool8 pid_vist_sts[NPROC] = {FALSE};
+		pid_vist_sts[currpid] = TRUE;
+	
 		pid32 pid_trace_list[NPROC];
 		int trace_count = 0;
+
+		pid_trace_list[trace_count++] = currpid;
 
 		while (TRUE) {
 
@@ -134,6 +138,7 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 				pid32 temp = pid_trace_list[i];
 				printf("-P%d",&temp);
 			}
+			printf("\n");
 
 		} 
 
