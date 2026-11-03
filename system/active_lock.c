@@ -1,13 +1,13 @@
-/* spinal_lock.c - spinal_lock */
+/* active_lock.c - active_lock.c */
 
 #include <xinu.h>
 
 /*------------------------------------------------------------------------
- *  spinal_lock  -   spinal_lock based on  test_and_set function
+ *  Active-lock locks used to detect deadlock
  *------------------------------------------------------------------------
  */
 static int32	al_locks_count = 0;
-static uint32 	al_locks_init_guard = 0;
+static uint32 	al_guard = 0;
 
 
 
@@ -20,6 +20,7 @@ bool8 al_trylock(al_lock_t *l ) {
     
     pri16 old_priority = chprio(currpid,MAXPRIO);
 
+	while (test_and_set(&al_guard, 1) == 1) {/* spin here */}
 	while (test_and_set(&l->guard , 1) == 1){/* spin here */}
 
 
@@ -27,11 +28,13 @@ bool8 al_trylock(al_lock_t *l ) {
 		l->flag = 1;
 		l->owner = currpid; 
 		l->guard = 0;
+		al_guard = 0;
 
 		chprio(currpid,old_priority);
 		return TRUE;		
 	}
 	l->guard = 0;
+	al_guard = 0;
 	chprio(currpid,old_priority);
 	return FALSE;
 }
@@ -40,14 +43,14 @@ syscall	al_initlock( al_lock_t *l	/* Mutex flag to al_lock	*/) {
 
 	pri16 old_priority = chprio(currpid,MAXPRIO);
 
-	while (test_and_set(&al_locks_init_guard,1) == 1)
+	while (test_and_set(&al_guard,1) == 1)
 	{
 	  /* this is done to avoid two processes from updating the count simultaneously */
 	}
 	
 	if (al_locks_count>=NALOCKS)
 	{
-		al_locks_init_guard = 0;
+		al_guard = 0;
 		chprio(currpid,old_priority);
 		return SYSERR;
 	}
@@ -63,7 +66,7 @@ syscall	al_initlock( al_lock_t *l	/* Mutex flag to al_lock	*/) {
 	l->tail = 0; 	
 
 	al_locks_count++;
-	al_locks_init_guard = 0;
+	al_guard = 0;
 
 	chprio(currpid,old_priority);
 
@@ -74,6 +77,7 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 
 	pri16 old_priority = chprio(currpid,MAXPRIO);
 
+	while (test_and_set(&al_guard, 1) == 1) {/* spin here */}
 	while (test_and_set(&l->guard , 1) == 1){/* spin here */}
 
 
@@ -81,6 +85,7 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 		l->flag = 1;
 		l->owner = currpid; 
 		l->guard = 0;
+		al_guard = 0;
 
 		chprio(currpid,old_priority);
 		
@@ -106,6 +111,11 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 
 		while (TRUE) {
 
+				/* Validate before indexing either the visited array or proctab. */
+			if (pid_trace < 0 || pid_trace >= NPROC || proctab[pid_trace].prstate == PR_FREE) {
+					break;
+				}
+
 			if(currpid == pid_trace) {
 				DL_FOUND = TRUE;
 				break;
@@ -115,6 +125,10 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 				// a case where the DL parent is someone else in the loop, so exit it 
 				break;
 			}
+
+				if (trace_count >= NPROC) {
+					break;
+				}
 			
 			pid_vist_sts[pid_trace] = TRUE;
 			pid_trace_list[trace_count++] = pid_trace;
@@ -150,17 +164,18 @@ syscall	al_lock( al_lock_t *l	/* Mutex flag to spinal_lock	*/) {
 			}
 
 
-			printf("deadlock_detected=P%d",pid_trace_list[0]);
+			kprintf("deadlock_detected=P%d",pid_trace_list[0]);
 			for(i = 1;i<trace_count;i++) {
 				pid32 temp = pid_trace_list[i];
-				printf("-P%d",temp);
+				kprintf("-P%d",temp);
 			}
-			printf("\n");
+			kprintf("\n");
 
 		} 
 
 		set_park(currpid);
 		l->guard = 0;
+		al_guard = 0;
 
 		chprio(currpid,old_priority);
 		park(currpid);
@@ -174,11 +189,13 @@ syscall	al_unlock( al_lock_t *l	/* Mutex flag to spinal_lock	*/ ) {
 
 	pri16 old_priority = chprio(currpid,MAXPRIO);
 
+	while (test_and_set(&al_guard, 1) == 1) {/* spin here */}
 	while (test_and_set(&l->guard , 1) == 1){ /* Spin here */}
 	
 	if(l->owner != currpid) 
 	{
 		l->guard = 0;
+		al_guard = 0;
 		chprio(currpid,old_priority);
 		return SYSERR;
 	}
@@ -196,6 +213,7 @@ syscall	al_unlock( al_lock_t *l	/* Mutex flag to spinal_lock	*/ ) {
 		proctab[pid].wt_mutex = NULL;  
 
 		l->guard = 0;
+		al_guard = 0;
 		chprio(currpid,old_priority);
 		
 		unpark(pid);
@@ -205,6 +223,7 @@ syscall	al_unlock( al_lock_t *l	/* Mutex flag to spinal_lock	*/ ) {
 	}
 	
 	l->guard = 0;
+	al_guard = 0;
 	chprio(currpid,old_priority);
 	return OK;
 }
