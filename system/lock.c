@@ -1,9 +1,9 @@
-/* spinlock.c - spinlock */
+/* lock.c - lock */
 
 #include <xinu.h>
 
 /*------------------------------------------------------------------------
- *  spinlock  -   spinlock based on  test_and_set function
+ *  lock  -   lock based on  test_and_set function
  *------------------------------------------------------------------------
  */
 static int32	locks_count = 0;
@@ -46,7 +46,7 @@ syscall	initlock( lock_t *l	/* Mutex flag to lock	*/) {
 	return OK;
 }
 
-syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
+syscall	lock( lock_t *l	/* Mutex flag to lock	*/) {
 
 	pri16 old_priority = chprio(currpid,MAXPRIO);
 
@@ -77,7 +77,7 @@ syscall	lock( lock_t *l	/* Mutex flag to spinlock	*/) {
 	return OK;
 }
 
-syscall	unlock(lock_t *l	/* Mutex flag to spinlock	*/ ) {
+syscall	unlock(lock_t *l	/* Mutex flag to lock	*/ ) {
 
 	pri16 old_priority = chprio(currpid,MAXPRIO);
 
