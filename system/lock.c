@@ -52,7 +52,8 @@ syscall	lock( lock_t *l	/* Mutex flag to lock	*/) {
 
 	while (test_and_set(&l->guard , 1) == 1){/* spin here */}
 
-
+	// if a ctxsw happens here while guard is held by a Low priority Thread, the High priority thread will be
+	// stuck in the the above loop so we take the maximim priority for this process.
 	if(l->flag == 0) {
 		l->flag = 1;
 		l->owner = currpid; 
