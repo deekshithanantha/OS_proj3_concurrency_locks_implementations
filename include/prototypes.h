@@ -351,6 +351,11 @@ extern	void	pdumph(struct netpacket *);
 /* in file platinit.c */
 extern	void	platinit(void);
 
+/* in file pi_lock.c */
+extern syscall pi_initlock(pi_lock_t *);
+extern syscall pi_lock(pi_lock_t *);
+extern syscall pi_unlock(pi_lock_t *);
+
 /* in file ptclear.c */
 extern	void	_ptclear(struct ptentry *, uint16, int32 (*)(int32));
 
