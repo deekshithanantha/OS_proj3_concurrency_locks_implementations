@@ -180,6 +180,9 @@ static	void	sysinit()
 		prptr->prname[0] = NULLCH;
 		prptr->prstkbase = NULL;
 		prptr->prprio = 0;
+		prptr->prprio_og = 0;
+		prptr->prprio_pi = 0;
+		prptr->pi_guard_active = FALSE;
 		prptr->runtime = 0;
 	}
 

@@ -355,6 +355,7 @@ extern	void	platinit(void);
 extern syscall pi_initlock(pi_lock_t *);
 extern syscall pi_lock(pi_lock_t *);
 extern syscall pi_unlock(pi_lock_t *);
+extern void pi_restoreprio(void);
 
 /* in file ptclear.c */
 extern	void	_ptclear(struct ptentry *, uint16, int32 (*)(int32));

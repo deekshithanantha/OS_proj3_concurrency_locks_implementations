@@ -57,6 +57,10 @@ struct procent {		/* Entry in the process table		*/
 	bool8 	set_park;   /* If made true will unpark when called park*/
 	uint32	runtime;	/* CPU running time in milliseconds	*/
 	struct active_lock *wt_mutex;
+	
+	pri16	prprio_og;		/* Process ORIGINAL priority   */
+	pri16	prprio_pi;		/* priority without guard boost */
+	bool8	pi_guard_active;	
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

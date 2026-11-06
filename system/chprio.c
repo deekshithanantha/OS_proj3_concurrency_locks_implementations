@@ -22,7 +22,27 @@ pri16	chprio(
 	}
 	prptr = &proctab[pid];
 	oldprio = prptr->prprio;
-	prptr->prprio = newprio;
+
+
+	if (prptr->prstate == PR_READY && oldprio != newprio) {
+		getitem(pid);
+		prptr->prprio = newprio;
+		insert(pid, readylist, newprio);
+	} 
+	
+	else {
+		prptr->prprio = newprio;
+	}
+
 	restore(mask);
 	return oldprio;
+}
+
+
+void pi_restoreprio(void)
+{
+	intmask mask = disable();
+	proctab[currpid].prprio = proctab[currpid].prprio_pi;
+	proctab[currpid].pi_guard_active = FALSE;
+	restore(mask);
 }
